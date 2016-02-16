@@ -1,5 +1,12 @@
 var child_process = require('child_process');
 
+function exec() {
+    var args = Array.prototype.join.call(arguments, ' ');
+    console.log('exec:', args);
+    var buffer = child_process.execSync.apply(child_process, arguments);
+    console.log(buffer.toString());
+}
+
 module.exports = function(grunt) {
     grunt.initConfig({
         connect: {
@@ -17,19 +24,13 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-connect');
 
     grunt.registerTask('clean', function() {
-        child_process.execSync('rm -rf public/dist/');
+        exec('rm -rf public/dist/');
     });
 
     grunt.registerTask('build', function() {
-        child_process.execSync('mkdir public/dist');
-        child_process.execSync('./node_modules/.bin/babel src -o public/dist/bundle.js --source-maps');
-    });
-
-    grunt.registerTask('copyjs', function() {
-        child_process.execSync('mkdir public/dist');
-        child_process.execSync('cp src/demo.js public/dist/bundle.js');
+        exec('mkdir public/dist');
+        exec('webpack');
     });
 
     grunt.registerTask('default', ['clean', 'build', 'connect:server']);
-    grunt.registerTask('no-babel', ['clean', 'copyjs', 'connect:server']);
 };
