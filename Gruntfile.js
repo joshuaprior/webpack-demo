@@ -27,10 +27,31 @@ module.exports = function(grunt) {
         exec('rm -rf public/dist/');
     });
 
-    grunt.registerTask('build', function() {
+    grunt.registerTask('create-dist', function() {
         exec('mkdir public/dist');
-        exec('webpack');
     });
 
-    grunt.registerTask('default', ['clean', 'build', 'connect:server']);
+    grunt.registerTask('build', function(transpiler) {
+        if (transpiler === 'babel' || transpiler === undefined) {
+            exec("./node_modules/.bin/babel src/demo.js -o public/dist/bundle.js --source-maps");
+
+        } else if (transpiler === 'webpack') {
+            exec('webpack');
+
+        } else {
+            grunt.log.error('Unknown transpiler.');
+        }
+    });
+
+    grunt.registerTask('serve', function(transpiler) {
+        var buildTask = (transpiler === 'babel' || transpiler === undefined) ? 'build:babel'
+            : transpiler === 'webpack' ? 'build:webpack'
+            : undefined;
+
+        if (!buildTask) grunt.log.error('Unknown transpiler.');
+
+        grunt.task.run(['clean', 'create-dist', buildTask, 'connect:server']);
+    });
+
+    grunt.registerTask('default', ['serve:babel']);
 };
